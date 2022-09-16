@@ -187,7 +187,7 @@ const deleteEvents = async (iCalEvents, gCalId, gCalEvents, gAuth) => {
  * @param {object} events Calendar events fetched from API
  * @param {object} response Response to the server
  */
-module.exports.createEvents = async function (gCalId, iCalEvents, response) {
+module.exports.createEvents = async function (gCalId, iCalEvents) {
     try {
         // Handle authentication
         const gAuth = new google.auth.GoogleAuth({
@@ -230,9 +230,8 @@ module.exports.createEvents = async function (gCalId, iCalEvents, response) {
             }
         }
         log('Events synced succesfully');
-        response.status(200).send(eventLog);
+        log(eventLog);
     } catch (err) {
         error('Error syncing events: ' + err.message);
-        response.status(500).send(ERROR_RESPONSE);
     }
 }

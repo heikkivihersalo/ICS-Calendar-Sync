@@ -23,14 +23,14 @@ const TUUDO_URL = "https://tuu.do/?t=x3CScJ6JeZtWG3To";
 // = FIREBASE FUNCTIONS =
 // ======================
 /**
- * Sync Calendar Events to Tuudo
+ * Sync Tuudo events to Google Calendar
  */
-exports.syncEventsToTuudo = functions.https.onRequest(async (req, res) => {
+exports.syncEventsToTuudo = functions.pubsub.schedule('0 0 * * *').onRun(async (context) => {
     let data = await axios.getData(TUUDO_URL);
     let events = await iCal.parseIcal(data);
-    await gCal.createEvents(CALENDARS.tuudo_calendar_id, events, res);
+    await gCal.createEvents(CALENDARS.tuudo_calendar_id, events);
     
-    res.end();
+    return null;
 });
 
 admin.initializeApp();
