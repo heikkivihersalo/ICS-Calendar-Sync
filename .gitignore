@@ -3,7 +3,7 @@
 
 ### VisualStudioCode ###
 .vscode/*
-*.code-workspace.json
+.code-workspace
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
@@ -87,4 +87,8 @@ calendars.json
 # Ignore mac files
 .DS_Store
 
-public/
+# Public folder
+public
+
+# package
+package-lock.json
