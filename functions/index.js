@@ -17,7 +17,9 @@ const iCal = require("./lib/ical.js");
 // ======================
 
 const CALENDARS = require('./calendars.json');
-const TUUDO_URL = "https://tuu.do/?t=x3CScJ6JeZtWG3To";
+
+const TUUDO_URL = CALENDARS.webcal.tuudo;
+const GOOGLE_CALENDAR_ID_TUUDO = CALENDARS.google.tuudo;
 
 // ======================
 // = FIREBASE FUNCTIONS =
@@ -28,7 +30,7 @@ const TUUDO_URL = "https://tuu.do/?t=x3CScJ6JeZtWG3To";
 exports.syncEventsToTuudo = functions.pubsub.schedule('0 0 * * *').onRun(async (context) => {
     let data = await axios.getData(TUUDO_URL);
     let events = await iCal.parseIcal(data);
-    await gCal.createEvents(CALENDARS.tuudo_calendar_id, events);
+    await gCal.createEvents(GOOGLE_CALENDAR_ID_TUUDO, events);
     
     return null;
 });
