@@ -84,3 +84,4 @@ node_modules/
 
 # Google auth credentials
 jwt.keys.json
+calendars.json

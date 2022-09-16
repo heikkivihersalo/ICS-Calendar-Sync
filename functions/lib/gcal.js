@@ -1,3 +1,4 @@
+require('dotenv').config();
 const path = require('path');
 const { warn, log, error } = require("firebase-functions/lib/logger");
 const { google } = require('googleapis');
@@ -8,8 +9,7 @@ const TIME_ZONE = 'GMT-05:00';
 const KEY_FILE_PATH = path.join(__dirname, 'jwt.keys.json');
 const GOOGLE_PRIVATE_KEY = credentials.private_key;
 const GOOGLE_CLIENT_EMAIL = credentials.client_email;
-const GOOGLE_PROJECT_NUMBER = "360636905446";
-const GOOGLE_CALENDAR_ID = "c_he0ldssjtiiidpecps9of63qfc@group.calendar.google.com";
+const GOOGLE_PROJECT_NUMBER = process.env.GOOGLE_PROJECT_NUMBER;
 const ERROR_RESPONSE = {
     status: "500",
     message: "There was an error adding an event to your Google Calendar"
@@ -83,13 +83,13 @@ const searchEvent = async (newEventData, gCalEvents) => {
  * @param {string} auth Authorization credentials
  * @returns {Promise} 
  */
-const addEvent = async (newEventData, gCalEvents, gAuth) => {
+const addEvent = async (newEventData, gCalId, gCalEvents, gAuth) => {
     return new Promise((resolve, reject) => {
         gAuth.getClient().then(async (auth) => {
             // Build event data
             const eventData = {
                 auth: auth,
-                calendarId: GOOGLE_CALENDAR_ID,
+                calendarId: gCalId,
                 resource: {
                     'summary': newEventData.eventName,
                     'description': newEventData.description,
@@ -108,8 +108,6 @@ const addEvent = async (newEventData, gCalEvents, gAuth) => {
             // Check for current calendar events
             const result = await searchEvent(newEventData, gCalEvents);
 
-            console.log(result);
-
             // Create, update or skip calendar event creation
             if (result === undefined || result.type == 'create') {
                 calendar.events.insert(eventData, (err, res) => {
@@ -126,7 +124,7 @@ const addEvent = async (newEventData, gCalEvents, gAuth) => {
             if (result !== undefined && result.type == 'update') {
                 calendar.events.update({
                     auth: auth,
-                    calendarId: GOOGLE_CALENDAR_ID,
+                    calendarId: gCalId,
                     eventId: result.event_id,
                     resource: {
                         ...eventData.resource
@@ -156,7 +154,7 @@ const addEvent = async (newEventData, gCalEvents, gAuth) => {
  * @param {*} gAuth 
  * @returns {Promise}
  */
-const deleteEvents = async (iCalEvents, gCalEvents, gAuth) => {
+const deleteEvents = async (iCalEvents, gCalId, gCalEvents, gAuth) => {
     return new Promise((resolve, reject) => {
         gAuth.getClient().then((auth) => {
             for (let k in iCalEvents) {
@@ -172,7 +170,7 @@ const deleteEvents = async (iCalEvents, gCalEvents, gAuth) => {
                         ) {
                             calendar.events.delete({
                                 auth: auth,
-                                calendarId: GOOGLE_CALENDAR_ID,
+                                calendarId: gCalId,
                                 eventId: gCalEvent.eventId,
                             });
                         }
@@ -189,7 +187,7 @@ const deleteEvents = async (iCalEvents, gCalEvents, gAuth) => {
  * @param {object} events Calendar events fetched from API
  * @param {object} response Response to the server
  */
-module.exports.createEvents = async function (iCalEvents, response) {
+module.exports.createEvents = async function (gCalId, iCalEvents, response) {
     try {
         // Handle authentication
         const gAuth = new google.auth.GoogleAuth({
@@ -200,7 +198,7 @@ module.exports.createEvents = async function (iCalEvents, response) {
         // Get all current events from calendar
         const gCalEvents = await calendar.events.list({
             auth: gAuth,
-            calendarId: GOOGLE_CALENDAR_ID
+            calendarId: gCalId
         });
 
         /**
@@ -208,7 +206,7 @@ module.exports.createEvents = async function (iCalEvents, response) {
          * Propably needs some delay between deleting and syncing new events
          */
         // Delete deleted events from calendar
-        // await deleteEvents(iCalEvents, gCalEvents, gAuth);
+        // await deleteEvents(iCalEvents, gCalId, gCalEvents, gAuth);
 
         // Sync new events or update old ones
         const eventLog = [];
@@ -224,7 +222,7 @@ module.exports.createEvents = async function (iCalEvents, response) {
                     location: ev.location
                 }
 
-                await addEvent(newEventData, gCalEvents, gAuth).then(data => {
+                await addEvent(newEventData, gCalId, gCalEvents, gAuth).then(data => {
                     eventLog.push(data);
                 }).catch(err => {
                     error('Error adding event: ' + err.message);
