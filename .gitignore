@@ -2,7 +2,7 @@
 # Edit at https://www.gitignore.io/?templates=visualstudiocode
 
 ### VisualStudioCode ###
-.vscode/*      # Maybe .vscode/**/* instead - see comments
+.vscode/*
 *.code-workspace.json
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -27,12 +27,10 @@ firebase-debug.*.log*
 # Firebase cache
 .firebase/
 
-# Firebase config
-
 # Uncomment this if you'd like others to create their own Firebase project.
 # For a team working on the same Firebase project(s), it is recommended to leave
 # it commented so all members can deploy to the same project(s) in .firebaserc.
-# .firebaserc
+.firebaserc
 
 # Runtime data
 pids
@@ -85,3 +83,8 @@ node_modules/
 # Google auth credentials
 jwt.keys.json
 calendars.json
+
+# Ignore mac files
+.DS_Store
+
+public/
